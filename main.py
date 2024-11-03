@@ -1,85 +1,112 @@
-from microbit import *
+# Constantes
+max_temp = 50
+max_accel = 1023
+max_light = 255
+max_mg_field = 1023
+max_rotation = 360
+max_sound = 255
 
-# Constantes de configuración
-MAX_TEMP = 50
-MAX_ACCEL = 1023
-MAX_LIGHT = 255
-MAX_MAG_FIELD = 1023
-MAX_ROTATION = 360
-MAX_SOUND = 255
 
-# Variables de estado
-current_value = 0
+# Variables
+current_temp = 0
+current_accel = 0
+current_light = 0
+mg_field = 0
+current_rotation = 0
+current_sound = 0
 x = 2
 y = 2
-mode = 0  # Modo inicial
-modes = 7  # Número total de modos
 
-def update_sensor_readings():
-    """Actualiza la lectura actual basada en el modo seleccionado."""
-    global current_value
-    if mode == 0:
-        current_value = input.temperature()  # Lectura de temperatura
-    elif mode == 1:
-        current_value = input.acceleration(Dimension.X)  # Lectura de aceleración en X
-    elif mode == 2:
-        current_value = input.light_level()  # Lectura de luz
-    elif mode == 3:
-        current_value = input.magnetic_force(Dimension.X)  # Lectura del campo magnético en X
-    elif mode == 4:
-        current_value = input.rotation(Rotation.PITCH)  # Lectura de rotación
-    elif mode == 5:
-        current_value = input.sound_level()  # Lectura de sonido
 
-def draw_graph():
-    """Dibuja un gráfico de barras basado en el valor actual y el modo."""
-    if mode < 6:  # Modo gráfico
-        led.plot_bar_graph(current_value, [MAX_TEMP, MAX_ACCEL, MAX_LIGHT, MAX_MAG_FIELD, MAX_ROTATION, MAX_SOUND][mode])
-    else:  # Modo de gota
-        led.plot(x, y)
+modes = 7
+mode = 0
 
-def move_drop():
-    """Mueve la gota según la inclinación de la micro:bit."""
-    global x, y
-    accel_x = input.acceleration(Dimension.X)
-    accel_y = input.acceleration(Dimension.Y)
-
-    if accel_x < -150 and x > 0:  # Mueve a la izquierda
-        x -= 1
-    elif accel_x > 150 and x < 4:  # Mueve a la derecha
-        x += 1
-
-    if accel_y < -150 and y > 0:  # Mueve hacia arriba
-        y -= 1
-    elif accel_y > 150 and y < 4:  # Mueve hacia abajo
-        y += 1
 
 def on_forever():
-    """Función principal que se ejecuta en bucle."""
-    basic.clear_screen()
-    update_sensor_readings()
-    draw_graph()
-    
-    if mode == 6:  # Solo en el modo de gota
-        draw_graph()  # Dibuja la gota
-        basic.pause(50)  # Pausa para dar efecto visual
-        led.unplot(x, y)  # Apaga el LED anterior
-        move_drop()  # Mueve la gota según la inclinación
+    global current_temp, current_accel, current_light, mg_field, current_rotation, current_sound, x, y
 
-# Control de botones
+
+    basic.clear_screen()
+
+
+    if mode == 0:
+        current_temp = input.temperature()
+        draw_temp_graph()
+    elif mode == 1:
+        current_accel = input.acceleration(Dimension.X)
+        draw_accel_graph()
+    elif mode == 2:
+        current_light = input.light_level()
+        draw_light_graph()
+    elif mode == 3:
+        mg_field = input.magnetic_force(Dimension.X)
+        draw_mg_field_graph()
+    elif mode == 4:
+        current_rotation = input.rotation(Rotation.PITCH)
+        draw_rotation_graph()
+    elif mode == 5:
+        current_sound = input.sound_level()
+        draw_sound_graph()
+    elif mode == 6:
+        led.plot(x, y)
+        basic.pause(50)
+        led.unplot(x, y)
+                
+        accelX = input.acceleration(Dimension.X)
+        accelY = input.acceleration(Dimension.Y)
+
+
+        if accelX < -150 and x > 0:
+            x -= 1
+        elif accelX > 150 and x < 4:
+            x += 1
+
+
+        if accelY < -150 and y > 0:
+            y -= 1
+        elif accelY > 150 and y < 4:
+            y += 1
+
+
+basic.forever(on_forever)
+
+
 def on_button_pressed_a():
     global mode
-    mode = (mode + 1) % modes  # Cambia al siguiente modo
+    mode = (mode + 1) % modes
     basic.clear_screen()
+input.on_button_pressed(Button.A, on_button_pressed_a)
+
 
 def on_button_pressed_b():
     global mode
-    mode = 6  # Cambia directamente al modo de gota
+    mode = 6
     basic.clear_screen()
-
-# Asignación de funciones a los botones
-input.on_button_pressed(Button.A, on_button_pressed_a)
 input.on_button_pressed(Button.B, on_button_pressed_b)
 
-# Iniciar el bucle principal
-basic.forever(on_forever)
+
+def draw_temp_graph():
+    led.plot_bar_graph(current_temp, max_temp)
+
+
+def draw_accel_graph():
+    led.plot_bar_graph(current_accel, max_accel)
+
+
+def draw_light_graph():
+    led.plot_bar_graph(current_light, max_light)
+
+
+def draw_mg_field_graph():
+    led.plot_bar_graph(mg_field, max_mg_field)
+
+
+def draw_rotation_graph():
+    led.plot_bar_graph(current_rotation, max_rotation)
+
+
+def draw_sound_graph():
+    led.plot_bar_graph(current_sound, max_sound)
+
+
+

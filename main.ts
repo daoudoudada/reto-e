@@ -1,108 +1,96 @@
-//  Constantes de configuración
-let MAX_TEMP = 50
-let MAX_ACCEL = 1023
-let MAX_LIGHT = 255
-let MAX_MAG_FIELD = 1023
-let MAX_ROTATION = 360
-let MAX_SOUND = 255
-//  Variables de estado
-let current_value = 0
+//  Constantes
+let max_temp = 50
+let max_accel = 1023
+let max_light = 255
+let max_mg_field = 1023
+let max_rotation = 360
+let max_sound = 255
+//  Variables
+let current_temp = 0
+let current_accel = 0
+let current_light = 0
+let mg_field = 0
+let current_rotation = 0
+let current_sound = 0
 let x = 2
 let y = 2
-let mode = 0
-//  Modo inicial
 let modes = 7
-//  Número total de modos
-function update_sensor_readings() {
-    /** Actualiza la lectura actual basada en el modo seleccionado. */
+let mode = 0
+basic.forever(function on_forever() {
+    let accelX: number;
+    let accelY: number;
     
+    basic.clearScreen()
     if (mode == 0) {
-        current_value = input.temperature()
+        current_temp = input.temperature()
+        draw_temp_graph()
     } else if (mode == 1) {
-        //  Lectura de temperatura
-        current_value = input.acceleration(Dimension.X)
+        current_accel = input.acceleration(Dimension.X)
+        draw_accel_graph()
     } else if (mode == 2) {
-        //  Lectura de aceleración en X
-        current_value = input.lightLevel()
+        current_light = input.lightLevel()
+        draw_light_graph()
     } else if (mode == 3) {
-        //  Lectura de luz
-        current_value = input.magneticForce(Dimension.X)
+        mg_field = input.magneticForce(Dimension.X)
+        draw_mg_field_graph()
     } else if (mode == 4) {
-        //  Lectura del campo magnético en X
-        current_value = input.rotation(Rotation.Pitch)
+        current_rotation = input.rotation(Rotation.Pitch)
+        draw_rotation_graph()
     } else if (mode == 5) {
-        //  Lectura de rotación
-        current_value = input.soundLevel()
-    }
-    
-}
-
-//  Lectura de sonido
-function draw_graph() {
-    /** Dibuja un gráfico de barras basado en el valor actual y el modo. */
-    if (mode < 6) {
-        //  Modo gráfico
-        led.plotBarGraph(current_value, [MAX_TEMP, MAX_ACCEL, MAX_LIGHT, MAX_MAG_FIELD, MAX_ROTATION, MAX_SOUND][mode])
-    } else {
-        //  Modo de gota
+        current_sound = input.soundLevel()
+        draw_sound_graph()
+    } else if (mode == 6) {
         led.plot(x, y)
+        basic.pause(50)
+        led.unplot(x, y)
+        accelX = input.acceleration(Dimension.X)
+        accelY = input.acceleration(Dimension.Y)
+        if (accelX < -150 && x > 0) {
+            x -= 1
+        } else if (accelX > 150 && x < 4) {
+            x += 1
+        }
+        
+        if (accelY < -150 && y > 0) {
+            y -= 1
+        } else if (accelY > 150 && y < 4) {
+            y += 1
+        }
+        
     }
     
-}
-
-function move_drop() {
-    /** Mueve la gota según la inclinación de la micro:bit. */
-    
-    let accel_x = input.acceleration(Dimension.X)
-    let accel_y = input.acceleration(Dimension.Y)
-    if (accel_x < -150 && x > 0) {
-        //  Mueve a la izquierda
-        x -= 1
-    } else if (accel_x > 150 && x < 4) {
-        //  Mueve a la derecha
-        x += 1
-    }
-    
-    if (accel_y < -150 && y > 0) {
-        //  Mueve hacia arriba
-        y -= 1
-    } else if (accel_y > 150 && y < 4) {
-        //  Mueve hacia abajo
-        y += 1
-    }
-    
-}
-
-//  Mueve la gota según la inclinación
-//  Control de botones
-//  Asignación de funciones a los botones
+})
 input.onButtonPressed(Button.A, function on_button_pressed_a() {
     
     mode = (mode + 1) % modes
-    //  Cambia al siguiente modo
     basic.clearScreen()
 })
 input.onButtonPressed(Button.B, function on_button_pressed_b() {
     
     mode = 6
-    //  Cambia directamente al modo de gota
     basic.clearScreen()
 })
-//  Iniciar el bucle principal
-basic.forever(function on_forever() {
-    /** Función principal que se ejecuta en bucle. */
-    basic.clearScreen()
-    update_sensor_readings()
-    draw_graph()
-    if (mode == 6) {
-        //  Solo en el modo de gota
-        draw_graph()
-        //  Dibuja la gota
-        basic.pause(50)
-        //  Pausa para dar efecto visual
-        led.unplot(x, y)
-        //  Apaga el LED anterior
-        move_drop()
-    }
-    
-})
+function draw_temp_graph() {
+    led.plotBarGraph(current_temp, max_temp)
+}
+
+function draw_accel_graph() {
+    led.plotBarGraph(current_accel, max_accel)
+}
+
+function draw_light_graph() {
+    led.plotBarGraph(current_light, max_light)
+}
+
+function draw_mg_field_graph() {
+    led.plotBarGraph(mg_field, max_mg_field)
+}
+
+function draw_rotation_graph() {
+    led.plotBarGraph(current_rotation, max_rotation)
+}
+
+function draw_sound_graph() {
+    led.plotBarGraph(current_sound, max_sound)
+}
+
